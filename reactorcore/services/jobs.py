@@ -47,7 +47,7 @@ class JobService(redis.RedisSource):
 
     def _get_queue(self, priority=None):
         priority = priority or Jobs.NORMAL
-        return Queue(priority, connection=self.client, async=self.is_async())
+        return Queue(priority, connection=self.client, is_async=self.is_async())
 
     @gen.coroutine
     def add(self, func=None, args=None, kwargs=None, priority=None, depends_on=None):

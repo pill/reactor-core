@@ -36,6 +36,18 @@ pip install -e reactor-core
 redis-server
 ```
 
+
+## Install
+```
+pip install -r requirements.txt
+```
+
+If you get an error installying pycurl try:
+```
+PYCURL_SSL_LIBRARY=openssl LDFLAGS="-L/usr/local/opt/openssl/lib" CPPFLAGS="-I/usr/local/opt/openssl/include" pip install --no-cache-dir pycurl
+```
+
+
 ## Start server
 ```
 python -m reactorcore.server
@@ -56,8 +68,8 @@ from reactorcore import application
 from reactorcore.settings import conf
 from reactorcore.server import start_server
 
-from dna.transform.urls import routes
-from dna.transform.services import nsq
+from myapp.transform.urls import routes
+from myapp.transform.services import something
 
 def main():
 
@@ -66,7 +78,7 @@ def main():
     conf['cron']['tasks'] = [
         {
             "name" : "demotask",
-            "module" : "dna.transform.cron.demo",
+            "module" : "myapp.transform.cron.demo",
             "class" : "DemoTask",
             "args" : [],
             "kwargs" : {"time_zone": "US/Eastern"},
@@ -81,7 +93,7 @@ def main():
 
     # services
     transform_services = {
-        'nsq_transform' : nsq.TextTransform()
+        'transform' : something.TextTransform()
     }
 
     # add custom conf, routes, and services

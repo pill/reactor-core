@@ -6,7 +6,7 @@ I usually put it in `/docker/app/Dockerfile`
 Example
 ```
 # Use latest version of reactor-core as base image.
-FROM 339626119775.dkr.ecr.us-east-1.amazonaws.com/dna-core/reactor-core:latest
+FROM 339626119775.dkr.ecr.us-east-1.amazonaws.com/<your_ecr>/reactor-core:latest
 
 # Add microservice application and tests.
 RUN mkdir /code
