@@ -9,6 +9,7 @@ from reactorcore import constants, util
 
 logger = logging.getLogger(__name__)
 
+
 class Model(object):
     """Shortcut for to_dict() and from_dict() methods.
 
@@ -30,16 +31,18 @@ class Model(object):
     def copy(source=None, target=None, attrs=None):
         # must have one dictionary
         if isinstance(source, dict) == isinstance(target, dict):
-            raise ValueError('Either the source or the target must be a dictionary')
+            raise ValueError(
+                "Either the source or the target must be a dictionary"
+            )
 
         if attrs is None:
-            raise ValueError('Must specify attribute constants')
+            raise ValueError("Must specify attribute constants")
 
         # get attribute names minus reserved and Python ones
         attr_names = constants.attr_names(attrs)
 
         # when copying from model to dictionary
-        if target.__class__.__name__ == 'dict':
+        if target.__class__.__name__ == "dict":
             data = util.select(source.__dict__, attr_names)
             target.update(data)
         # copying from dictionary to model
@@ -47,8 +50,9 @@ class Model(object):
             data = util.select(source, attr_names)
             target.__dict__.update(data)
 
-    def __init__(self, id=None, is_clean=False, created_at=None,
-                 updated_at=None):
+    def __init__(
+        self, id=None, is_clean=False, created_at=None, updated_at=None
+    ):
         self.id = id
         self.is_clean = is_clean
         self.created_at = created_at
@@ -98,10 +102,16 @@ class Model(object):
     def to_dict(self, keys=None):
         raise NotImplementedError()
 
-class Event(Model):
 
-    def __init__(self, ready_after=None, handler=None,
-                 data=None, group=None, created_at=None):
+class Event(Model):
+    def __init__(
+        self,
+        ready_after=None,
+        handler=None,
+        data=None,
+        group=None,
+        created_at=None,
+    ):
         super(Event, self).__init__()
         self.data = data
         self.group = group
@@ -124,7 +134,7 @@ class Event(Model):
             group=d.get(constants.Event.GROUP),
             handler=d.get(constants.Event.HANDLER),
             ready_after=d.get(constants.Event.READY_AFTER),
-            created_at=d.get(constants.Event.CREATED_AT)
+            created_at=d.get(constants.Event.CREATED_AT),
         )
 
     def __str__(self):

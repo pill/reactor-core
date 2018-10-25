@@ -11,9 +11,10 @@ from reactorcore import util
 
 logger = logging.getLogger(__name__)
 
-class BaseRequestHandler(tornado.web.RequestHandler):
 
+class BaseRequestHandler(tornado.web.RequestHandler):
     @property
     def app(self):
         from reactorcore import application
+
         return application.get_application()

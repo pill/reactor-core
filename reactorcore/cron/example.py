@@ -3,8 +3,7 @@ from reactorcore.cron.base import CronTask
 
 
 class ExampleTask(CronTask):
-
-    def execute(*args, **kwargs):
-        print('')
-        print('Executing Cron ExampleTask!')
-        print('')
+    def execute(self, *args, **kwargs):
+        print("")
+        print("Executing Cron ExampleTask!")
+        print("")

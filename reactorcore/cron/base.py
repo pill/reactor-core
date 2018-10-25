@@ -1,9 +1,11 @@
 from tornado import gen
 
+
 class CronTask(object):
     @property
     def app(self):
         from reactorcore import application
+
         return application.get_application()
 
     @gen.coroutine

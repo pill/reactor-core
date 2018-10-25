@@ -1,6 +1,7 @@
 import sys
 import traceback
 import csv
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -18,7 +19,7 @@ import re
 import string
 from unicodedata import normalize
 
-#import bleach
+# import bleach
 from tornado import gen
 from tornado.ioloop import IOLoop
 
@@ -29,8 +30,10 @@ ZIP_RE = re.compile("^\d{5}(?:[-\s]\d{4})?$")
 
 logger = logging.getLogger(__name__)
 
+
 class AttributeDict(dict):
     """A dictionary-like object allowing indexed and attribute access."""
+
     def __init__(self, *args, **kwargs):
         super(AttributeDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
@@ -40,20 +43,22 @@ class DateTimeEncoder(json.JSONEncoder):
     """This is needed because it can handle the
     `indent` argument, and `datetime_handler` does not
     """
+
     def default(self, obj):
         if isinstance(obj, (datetime, date)):
             return obj.isoformat()
-        elif hasattr(obj, 'to_dict'):
+        elif hasattr(obj, "to_dict"):
             # it's probably a model
-            return '{} id:{}'.format(str(obj), obj.id)
+            return "{} id:{}".format(str(obj), obj.id)
         return super(DateTimeEncoder, self).default(obj)
+
 
 # ***********************************************************************
 # TEXT/HTML
 # ***********************************************************************
 
 
-def shorten_text(text, max_len=400, show_more_text=''):
+def shorten_text(text, max_len=400, show_more_text=""):
     """
     Shorten a body of text.
         text - the string to be shortened, or self if not long enough
@@ -63,7 +68,7 @@ def shorten_text(text, max_len=400, show_more_text=''):
     if text == None:
         return None
 
-    cutoff_string = '... '
+    cutoff_string = "... "
 
     shorter = None
     if len(text) > max_len + len(cutoff_string):
@@ -72,19 +77,19 @@ def shorten_text(text, max_len=400, show_more_text=''):
     return shorter or text
 
 
-def slugify(text, delim='-'):
+def slugify(text, delim="-"):
     """Generates a ASCII-only slug."""
     text = unicode(text)
     result = []
     for word in PUNCT_RE.split(text.lower()):
-        word = normalize('NFKD', word).encode('ascii', 'ignore')
+        word = normalize("NFKD", word).encode("ascii", "ignore")
         if word:
             result.append(word)
     return unicode(delim.join(result))
 
 
 def gen_random_string(size=10, chars=string.ascii_letters + string.digits):
-    return ''.join(random.choice(chars) for x in range(size))
+    return "".join(random.choice(chars) for x in range(size))
 
 
 # def linkify_text(text):
@@ -116,6 +121,7 @@ class UTF8Recoder:
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
+
     def __init__(self, f, encoding):
         self.reader = codecs.getreader(encoding)(f)
 
@@ -131,6 +137,7 @@ class UnicodeWriter:
     A CSV writer which will write rows to CSV file "f",
     which is encoded in the given encoding.
     """
+
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
         self.queue = StringIO.StringIO()
@@ -159,6 +166,7 @@ class UnicodeWriter:
 # DECORATORS
 # ***********************************************************************
 
+
 def calculate_cache_key(key, *args, **kwargs):
     # is it a function? then just call the function
     if callable(key):
@@ -184,10 +192,12 @@ def set_cache(key, expire=None):
            function os a string. A function will be called with *args
            and **kwargs that were passed to the function being decorated
     """
+
     def decorator(fxn):
         @gen.coroutine
         def wrapper(*args, **kwargs):
             import application
+
             cache = application.get_application().service.cache
 
             # is it a function? then just call the function
@@ -205,7 +215,9 @@ def set_cache(key, expire=None):
             # then save the results
             yield cache.set(cache_key, data, expire=expire)
             raise gen.Return(data)
+
         return wrapper
+
     return decorator
 
 
@@ -215,6 +227,7 @@ def flush_cache(key):
         @gen.coroutine
         def wrapper(*args, **kwargs):
             import application
+
             cache = application.get_application().service.cache
 
             # is it a function? then just call the function
@@ -224,8 +237,11 @@ def flush_cache(key):
             # now call the wrapped function
             res = yield fxn(*args, **kwargs)
             raise gen.Return(res)
+
         return wrapper
+
     return decorator
+
 
 # Jobs - coroutines that block and run within a separate
 # new worker process
@@ -234,6 +250,7 @@ def job(f):
     @gen.coroutine
     def decorated_function(*args, **kwargs):
         import application
+
         jobs = application.get_application().service.jobs
 
         partial_f = functools.partial(f, *args, **kwargs)
@@ -249,27 +266,52 @@ def job(f):
                 file_name, line, func, failed_code = tb[-1]
                 logger.error(
                     'Error: %s. Occurred at: %s:%s %s() in "%s"',
-                    ex.message, file_name, line, func, failed_code, exc_info=True)
+                    ex.message,
+                    file_name,
+                    line,
+                    func,
+                    failed_code,
+                    exc_info=True,
+                )
             except exception.DuplicateError:
                 ex_type, ex, last_tb = sys.exc_info()
                 tb = traceback.extract_tb(last_tb)
                 file_name, line, func, failed_code = tb[-1]
                 logger.error(
                     'Error: %s. Occurred at: %s:%s %s() in "%s"',
-                    ex.message, file_name, line, func, failed_code, exc_info=True)
+                    ex.message,
+                    file_name,
+                    line,
+                    func,
+                    failed_code,
+                    exc_info=True,
+                )
             except UnicodeEncodeError:
                 ex_type, ex, last_tb = sys.exc_info()
                 tb = traceback.extract_tb(last_tb)
                 file_name, line, func, failed_code = tb[-1]
                 logger.error(
                     'Error: %s. Occurred at: %s:%s %s() in "%s"',
-                    ex.message, file_name, line, func, failed_code, exc_info=True)
+                    ex.message,
+                    file_name,
+                    line,
+                    func,
+                    failed_code,
+                    exc_info=True,
+                )
             except Exception:
                 ex_type, ex, last_tb = sys.exc_info()
                 tb = traceback.extract_tb(last_tb)
                 file_name, line, func, failed_code = tb[-1]
-                logger.critical('[EXCEPTION] Error: %s. Occurred at: %s:%s %s() in "%s"',
-                                ex.message, file_name, line, func, failed_code, exc_info=True)
+                logger.critical(
+                    '[EXCEPTION] Error: %s. Occurred at: %s:%s %s() in "%s"',
+                    ex.message,
+                    file_name,
+                    line,
+                    func,
+                    failed_code,
+                    exc_info=True,
+                )
         else:
             # already within IOLoop - just yield the future
             yield partial_f()
@@ -298,6 +340,7 @@ def coroutine_partial(func, *args, **keywords):
     # return a Future to yield
     return newfunc
 
+
 # ***********************************************************************
 # MISC
 # ***********************************************************************
@@ -316,17 +359,13 @@ def local_time():
 def select(d, keys):
     if not keys:
         return d
-    return {
-        k: v for k, v in d.items() if k in keys
-    }
+    return {k: v for k, v in d.items() if k in keys}
 
 
 def unselect(d, keys):
     if not keys:
         return d
-    return {
-        k: v for k, v in d.items() if k not in keys
-    }
+    return {k: v for k, v in d.items() if k not in keys}
 
 
 def zip_check(query_str):
@@ -335,10 +374,11 @@ def zip_check(query_str):
     """
     return re.match(ZIP_RE, query_str)
 
+
 # converter for date/time for JSON operations
-datetime_handler = lambda obj: (obj.isoformat()
-                                if isinstance(obj, (datetime, date))
-                                else None)
+datetime_handler = lambda obj: (
+    obj.isoformat() if isinstance(obj, (datetime, date)) else None
+)
 
 
 def prettify_time(event_time, now=None):
@@ -384,17 +424,16 @@ def str_to_dt(date_str):
 
     return delorean.parse(date_str).datetime
 
-
-# def sanitize_html_input(text):
-#     """
-#     Use bleach library to sanitize html text.
-#     This mitigates the risk of scripting attacks.
-#     """
-#     # Clean JS attacks.
-#     bleached_text = bleach.clean(text, tags=[], attributes=[], styles=[], strip=True)
+    # def sanitize_html_input(text):
+    #     """
+    #     Use bleach library to sanitize html text.
+    #     This mitigates the risk of scripting attacks.
+    #     """
+    #     # Clean JS attacks.
+    #     bleached_text = bleach.clean(text, tags=[], attributes=[], styles=[], strip=True)
 
     # Remove excess newlines.
-    return re.sub('\n\n+', '\n\n', bleached_text)
+    return re.sub("\n\n+", "\n\n", bleached_text)
 
 
 def _shorten_url(attrs, new=False):
@@ -407,18 +446,21 @@ def _shorten_url(attrs, new=False):
         return attrs
 
     # _text will be the same as the URL for new links.
-    text = attrs['_text']
+    text = attrs["_text"]
     if len(text) > 25:
-        attrs['_text'] = text[0:22] + '...'
-    attrs['target'] = '_blank'
+        attrs["_text"] = text[0:22] + "..."
+    attrs["target"] = "_blank"
     return attrs
+
 
 def prepend_dict_key(orig, prep_text, camel_case=False):
     """
     Return a new dictionary for which every key is prepended with prep_text.
     """
     if camel_case:
-        return dict((prep_text + str(k).title(), v) for k, v in orig.iteritems())
+        return dict(
+            (prep_text + str(k).title(), v) for k, v in orig.iteritems()
+        )
     else:
         return dict((prep_text + str(k), v) for k, v in orig.iteritems())
 
@@ -458,6 +500,7 @@ def group_and_create_lookup(things, key_func):
 def json_print(dict_data):
     print(json.dumps(dict_data, cls=DateTimeEncoder, indent=2))
 
+
 def safe_get(dct, *key_path):
     """
     Return value if all keys exist (in order)
@@ -465,22 +508,24 @@ def safe_get(dct, *key_path):
     """
     for k in key_path:
 
-        if isinstance( k, int ) and k < len(dct):
+        if isinstance(k, int) and k < len(dct):
             dct = dct[k]
         elif k in dct:
             dct = dct[k]
         else:
-            logger.warn('Key not found in dict: %s %s', str(dct), str(key_path))
+            logger.warn(
+                "Key not found in dict: %s %s", str(dct), str(key_path)
+            )
             return None
     return dct
+
 
 def deep_get(d, path):
     # safe return deep path (dot separated) in dict
     # otherwise return None
     cur = d
-    for p in path.split('.'):
+    for p in path.split("."):
         cur = cur.get(p)
         if not cur:
             return None
     return cur
-

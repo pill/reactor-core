@@ -25,32 +25,36 @@ def im_wrapper(*args, **kwargs):
     This will get called by RQ upon unpickling
 
     """
-    cls = kwargs.pop('cls')
-    f_name = kwargs.pop('f_name')
+    cls = kwargs.pop("cls")
+    f_name = kwargs.pop("f_name")
     im = getattr(cls(), f_name)
     res = yield im(*args, **kwargs)
     raise gen.Return(res)
 
 
 class Jobs(object):
-    HIGH = 'high'
-    NORMAL = 'normal'
-    LOW = 'low'
+    HIGH = "high"
+    NORMAL = "normal"
+    LOW = "low"
 
 
 class JobService(redis.RedisSource):
     def __init__(self):
-        super(JobService, self).__init__(name='JOBS', cls=self.__class__)
+        super(JobService, self).__init__(name="JOBS", cls=self.__class__)
 
     def is_async(self):
         return True
 
     def _get_queue(self, priority=None):
         priority = priority or Jobs.NORMAL
-        return Queue(priority, connection=self.client, is_async=self.is_async())
+        return Queue(
+            priority, connection=self.client, is_async=self.is_async()
+        )
 
     @gen.coroutine
-    def add(self, func=None, args=None, kwargs=None, priority=None, depends_on=None):
+    def add(
+        self, func=None, args=None, kwargs=None, priority=None, depends_on=None
+    ):
         args = args or ()
         kwargs = kwargs or {}
 
@@ -67,20 +71,20 @@ class JobService(redis.RedisSource):
             kwargs=kwargs,
             priority=priority,
             depends_on=depends_on,
-            job_id=job_id
+            job_id=job_id,
         )
 
-        logger.debug('Added job id(%s) to queue', job_id)
+        logger.debug("Added job id(%s) to queue", job_id)
         raise gen.Return(None)
 
     @concurrent.run_on_executor
     def _add(self, *args, **kwargs):
-        job_id = kwargs['job_id']
-        priority = kwargs['priority']
-        func = kwargs['func']
-        f_args = kwargs['args']
-        f_kwargs = kwargs['kwargs']
-        depends_on = kwargs['depends_on']
+        job_id = kwargs["job_id"]
+        priority = kwargs["priority"]
+        func = kwargs["func"]
+        f_args = kwargs["args"]
+        f_kwargs = kwargs["kwargs"]
+        depends_on = kwargs["depends_on"]
         priority = priority or Jobs.NORMAL
 
         logger.debug('Adding JOB "%s" on %s', func.__name__, priority)
@@ -88,8 +92,8 @@ class JobService(redis.RedisSource):
         q = self._get_queue(priority)
 
         # these are for the wrapper
-        f_kwargs['cls'] = func.im_class
-        f_kwargs['f_name'] = func.__name__
+        f_kwargs["cls"] = func.im_class
+        f_kwargs["f_name"] = func.__name__
 
         res = None
         try:
@@ -97,12 +101,16 @@ class JobService(redis.RedisSource):
                 func=im_wrapper,
                 args=f_args,
                 kwargs=f_kwargs,
-                depends_on=depends_on
+                depends_on=depends_on,
             )
 
         except RedisError as ex:
-            logger.critical('[EXCEPTION] Error adding job id(%s) %s',
-                            job_id, ex.message, exc_info=True)
+            logger.critical(
+                "[EXCEPTION] Error adding job id(%s) %s",
+                job_id,
+                ex.message,
+                exc_info=True,
+            )
 
             res = None
 

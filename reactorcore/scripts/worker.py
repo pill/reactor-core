@@ -6,9 +6,9 @@ from reactor import application
 from reactor.settings import conf
 
 redis = StrictRedis(
-    host=conf['redis']['host'],
-    port=conf['redis']['port'],
-    db=conf['redis']['db']
+    host=conf["redis"]["host"],
+    port=conf["redis"]["port"],
+    db=conf["redis"]["db"],
 )
 
 with Connection(redis):
@@ -16,4 +16,3 @@ with Connection(redis):
     qs = map(Queue, sys.argv[1:]) or [Queue()]
     w = Worker(qs)
     w.work()
-

@@ -26,7 +26,7 @@ class AbstractEventService(object):
         """
         Process events that are ripe as of most recently.
         """
-        logger.debug('Processing %s events', len(events))
+        logger.debug("Processing %s events", len(events))
 
         """
         Group events by group identifier that is OPTIONALLY
@@ -39,7 +39,7 @@ class AbstractEventService(object):
          Any event in group None should be processed separately,
          - these events do not belong to a bundle
         """
-        for e in event_groups.pop(None, {}).get('events', []):
+        for e in event_groups.pop(None, {}).get("events", []):
             func = self._get_event_handler(e.handler)
             if not func:
                 continue
@@ -50,9 +50,9 @@ class AbstractEventService(object):
         and events in these groups are processed in one go
         """
         for group_id, d in event_groups.items():
-            handler = d['handler']
-            grouped_events = d['events']
-            logger.debug('Processing events for group %s', group_id)
+            handler = d["handler"]
+            grouped_events = d["events"]
+            logger.debug("Processing events for group %s", group_id)
             func = self._get_event_handler(handler)
             if not func:
                 continue
@@ -73,11 +73,13 @@ class AbstractEventService(object):
         }
         """
 
-        groups = {e.group: {'events': [], 'handler': e.handler} for e in events}
+        groups = {
+            e.group: {"events": [], "handler": e.handler} for e in events
+        }
 
         # allocate the events into their groups
         for e in events:
-            groups[e.group]['events'].append(e)
+            groups[e.group]["events"].append(e)
 
         return groups
 
@@ -93,7 +95,7 @@ class AbstractEventService(object):
         assert handler
 
         obj = self
-        for attr in handler.split('.'):
+        for attr in handler.split("."):
             obj = getattr(obj, attr)
         return obj
 
@@ -126,8 +128,8 @@ class EventService(base.BaseService, AbstractEventService):
 
         yield self.app.service.jobs.add(
             func=self.process_events,
-            kwargs={'events': events},
-            priority=jobs.Jobs.NORMAL
+            kwargs={"events": events},
+            priority=jobs.Jobs.NORMAL,
         )
 
     @gen.coroutine
@@ -136,7 +138,7 @@ class EventService(base.BaseService, AbstractEventService):
         assert event.data
         assert event.ready_after is not None
 
-        logger.debug('Creating event %s group by %s', event, group_by)
+        logger.debug("Creating event %s group by %s", event, group_by)
 
         event = yield self.DAO.create_event(event, group_by=group_by)
         raise gen.Return(event)
@@ -153,7 +155,7 @@ class EventService(base.BaseService, AbstractEventService):
         assert handler
 
         obj = self
-        for attr in handler.split('.'):
+        for attr in handler.split("."):
             obj = getattr(obj, attr)
         return obj
 
@@ -169,6 +171,7 @@ class ImmediateEventService(EventService):
     Processes events as they arrive, storing them in a global
     container, to possibly verify that they fire.
     """
+
     events = []
 
     @gen.coroutine
@@ -178,7 +181,7 @@ class ImmediateEventService(EventService):
 
         self.events.append(event)
 
-        logger.debug('Immediately processing event %s', event)
+        logger.debug("Immediately processing event %s", event)
         yield self.process_events(events=[event])
 
 
