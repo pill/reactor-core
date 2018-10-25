@@ -29,7 +29,7 @@ class RedisSource(object):
                     socket_timeout=redis_conf['timeout'],
                     socket_keepalive=True)
 
-            except redis.RedisError, ex:
+            except redis.RedisError as ex:
                 logger.critical('Could not connect to Redis: %s', ex)
 
         return RedisSource._redis

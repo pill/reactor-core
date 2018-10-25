@@ -6,10 +6,10 @@ import json
 from tornado import web, escape
 from tornado.ioloop import IOLoop
 
-import constants
-import services
-import urls
-import util
+from reactorcore import constants
+from reactorcore import services
+from  reactorcore import urls
+from reactorcore import util
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class Application(web.Application):
             conf['cache']['backend'])
 
         # possible extended services
-        for service_name, service in services.iteritems():
+        for service_name, service in services.items():
             setattr(self.service, service_name, service)
 
         logger.info(

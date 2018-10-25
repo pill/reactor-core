@@ -100,7 +100,7 @@ class JobService(redis.RedisSource):
                 depends_on=depends_on
             )
 
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error adding job id(%s) %s',
                             job_id, ex.message, exc_info=True)
 

@@ -90,7 +90,7 @@ class EventDao(redis.RedisSource):
                 if not existing_score:
                     logger.debug('Creating event group %s with score %s', group, event.score)
                     self.client.set(group, event.score)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('Error creating event %s, %s', ex.message, event)
 
         return event
@@ -111,7 +111,7 @@ class EventDao(redis.RedisSource):
 
             # returns array of results - one for each command in the pipe
             data, _ = pipe.execute()
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('Error getting events: %s', ex)
 
         if not data:
@@ -144,7 +144,7 @@ class EventDao(redis.RedisSource):
             try:
                 logger.debug('Removing event groups: %s', event_groups)
                 self.client.delete(*event_groups)
-            except RedisError, ex:
+            except RedisError as ex:
                 logger.critical('Error deleting event groups', ex)
 
         return events

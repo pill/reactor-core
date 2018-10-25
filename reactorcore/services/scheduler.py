@@ -224,7 +224,7 @@ class SchedulerService(RedisSource, BaseService):
         try:
             task_callable = self._get_callable(task['name'])
             task_callable()
-        except Exception, ex:
+        except Exception as ex:
             _, ex, tb = sys.exc_info()
             tb = traceback.extract_tb(tb)
             stacktrace = traceback.format_list(tb)

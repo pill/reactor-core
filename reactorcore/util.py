@@ -1,7 +1,10 @@
 import sys
 import traceback
 import csv
-import cStringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 import codecs
 from datetime import datetime, date
 import itertools
@@ -130,7 +133,7 @@ class UnicodeWriter:
     """
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
+        self.queue = StringIO.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
@@ -162,7 +165,7 @@ def calculate_cache_key(key, *args, **kwargs):
         # make sure the cache key calculation function doesnt bail out
         try:
             cache_key = key(args, kwargs)
-        except Exception, ex:
+        except Exception as ex:
             logger.error("Error calculating cache key: %s", ex)
             return None
 
@@ -453,7 +456,7 @@ def group_and_create_lookup(things, key_func):
 
 
 def json_print(dict_data):
-    print json.dumps(dict_data, cls=DateTimeEncoder, indent=2)
+    print(json.dumps(dict_data, cls=DateTimeEncoder, indent=2))
 
 def safe_get(dct, *key_path):
     """

@@ -4,7 +4,7 @@ from abc import ABCMeta, abstractmethod
 from redis.exceptions import RedisError
 from time import time
 import collections
-import cPickle
+import pickle
 import logging
 import re
 
@@ -147,7 +147,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         logger.debug('Setting cache key "%s" with TTL %s', key, expire)
 
         key = self.prefix + key
-        pickled_val = cPickle.dumps(value)
+        pickled_val = pickle.dumps(value)
 
         try:
             if expire is not None:
@@ -158,7 +158,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
                     pipe.execute()
             else:
                 self.client.set(key, pickled_val)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache SET: %s', ex.message, exc_info=True)
 
     @concurrent.run_on_executor
@@ -173,10 +173,10 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         try:
             data = self.client.get(key)
             # unpickle
-            value = cPickle.loads(data) if data else None
+            value = pickle.loads(data) if data else None
 
             logger.debug('Value for "%s": %s', key, value)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET: %s', ex.message, exc_info=True)
 
         return value
@@ -187,7 +187,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
 
         try:
             self.client.sadd(set_name, value)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET: %s', ex.message, exc_info=True)
 
     @gen.coroutine
@@ -195,7 +195,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         logger.debug('Getting set "%s"', set_name)
         try:
             members = self.client.smembers(set_name)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET: %s', ex.message, exc_info=True)
 
         members = members or set()
@@ -212,7 +212,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         try:
             value = self.client.get(key)
             logger.debug('Value for "%s": %s', key, value)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET: %s', ex.message, exc_info=True)
 
         return value or 0
@@ -229,11 +229,11 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
 
             # unpickle elements
             if data:
-                arr = map(lambda x: cPickle.loads(x), data)
+                arr = map(lambda x: pickle.loads(x), data)
 
             logger.debug('Value for "%s": %s', key, arr)
 
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET: %s', ex.message, exc_info=True)
 
         return arr
@@ -252,7 +252,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
             data = self.client.mget(keys)
 
             # unpickle values
-            values = [(val and cPickle.loads(str(val))) or None for val in data]
+            values = [(val and pickle.loads(str(val))) or None for val in data]
 
             # remove the cache prefix from keys
             keys = [key[len(self.prefix):] for key in keys]
@@ -261,10 +261,10 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
             lookup = dict(zip(keys, values))
 
             logger.debug('Cache data: %s', lookup)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache MGET: %s', ex.message, exc_info=True)
             return dict.fromkeys(keys_in)
-        except cPickle.UnpicklingError, ex:
+        except pickle.UnpicklingError as ex:
             logger.critical('[EXCEPTION] Unpickle error: %s', ex.message, exc_info=True)
             return dict.fromkeys(keys_in)
 
@@ -277,7 +277,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             self.client.incr(key, ticks)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache INCR: %s', ex.message, exc_info=True)
 
     @gen.coroutine
@@ -286,14 +286,14 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         assert size > 1
         logger.debug('Prepending "%s" to %s', value, key)
         key = self.prefix + key
-        pickled_val = cPickle.dumps(value)
+        pickled_val = pickle.dumps(value)
 
         try:
             with self.client.pipeline() as pipe:
                 pipe.lpush(key, pickled_val)
                 pipe.ltrim(key, 0, size - 1)
                 pipe.execute()
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache PREPEND: %s', ex.message, exc_info=True)
 
     @gen.coroutine
@@ -302,14 +302,14 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         assert size > 1
         logger.debug('Appending "%s" to %s', value, key)
         key = self.prefix + key
-        pickled_val = cPickle.dumps(value)
+        pickled_val = pickle.dumps(value)
 
         try:
             with self.client.pipeline() as pipe:
                 pipe.rpush(key, pickled_val)
                 pipe.ltrim(key, 0, size - 1)
                 pipe.execute()
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache APPEND: %s', ex.message, exc_info=True)
 
     @concurrent.run_on_executor
@@ -326,7 +326,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
             with self.client.pipeline() as pipe:
                 pipe.delete(*keys)
                 pipe.execute()
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache DELETE: %s', ex.message, exc_info=True)
 
 
@@ -344,7 +344,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
                 keys_to_flush = keys[i:i + self.FLUSH_STEP]
                 logger.debug('Flushing cache keys %s', keys_to_flush)
                 self.client.delete(*keys_to_flush)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache FLUSH: %s', ex.message, exc_info=True)
 
     @concurrent.run_on_executor
@@ -362,31 +362,31 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             self.client.hmset(key, val)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache HASH SET: %s', ex.message, exc_info=True)
 
     @gen.coroutine
     def delete_hash_key(self, r_hash, *keys):
         r_hash = self.prefix + r_hash
-        try: 
+        try:
             return self.client.hdel(r_hash, *keys)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache HASH DEL: %s', ex.message, exc_info=True)
-            
+
     @gen.coroutine
     def get_hash(self, key, hash_key):
         key = self.prefix + key
         try:
             return self.client.hget(key, hash_key)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache HASH GET: %s', ex.message, exc_info=True)
-        
+
     @gen.coroutine
     def get_all_hashes(self, key):
         key = self.prefix + key
         try:
             return self.client.hgetall(key)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET ALL HASHES: %s', ex.message, exec_info=True)
 
     @gen.coroutine
@@ -394,15 +394,15 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             return self.client.hlen(key)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET HASH LENGTH: %s', ex.message, exec_info=True)
 
 
     @gen.coroutine
     def get_keys(self, pattern):
-        try: 
+        try:
             return self.client.keys(pattern)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET KEYS: %s', ex.message, exec_info=True)
 
     @gen.coroutine
@@ -410,7 +410,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             return self.client.ltrim(key, start, end)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache TRIM ARRAY: %s', ex.message, exec_info=True)
 
     @gen.coroutine
@@ -418,7 +418,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             return self.client.zadd(key, **sets)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache SET ZSET: %s', ex.message, exec_info=True)
 
     @gen.coroutine
@@ -427,7 +427,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         try:
             return self.client.zrangebyscore(key, min_score, max_score, start=start, num=num,
                 withscores=withscores)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache GET ZRANGEBYSCORE: %s', ex.message, exec_info=True)
 
     @gen.coroutine
@@ -435,7 +435,7 @@ class RedisCache(RedisSource, BaseService, AbstractCache):
         key = self.prefix + key
         try:
             return self.client.zremrangebyscore(key, min_score, max_score)
-        except RedisError, ex:
+        except RedisError as ex:
             logger.critical('[EXCEPTION] Error on cache ZREMRANGEBYSCORE: %s', ex.message, exec_info=True)
 
 

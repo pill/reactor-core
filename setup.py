@@ -9,7 +9,6 @@ setup(
         'Delorean==0.4.5',
         'bleach==1.4.1',
         'futures==2.2.0',
-        'hiredis==0.2.0',
         'ipdb',
         'mock==1.0.1',
         'nose==1.3.4',
@@ -19,7 +18,6 @@ setup(
         'rq-dashboard',
         'rq==0.5.6',
         'tornado==4.2',
-        'python-circuit==0.1.5',
         'python-dateutil==2.5.0',
         'loremipsum==1.0.5'
     ]
