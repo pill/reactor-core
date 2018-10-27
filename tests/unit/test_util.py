@@ -7,31 +7,6 @@ from reactorcore import util
 
 class TestUtil(unittest.TestCase):
 
-    def test_prettify_time(self):
-        """
-        Return string corresponding to relative time between now and
-        0-59 seconds => "Just now"
-        1-59 minutes => "[# of minutes]m ago"
-        1-24 hours => "[# of hours]h ago"
-        24 hours + => "[Month] [dd], [year]"
-        """
-        begin = dt(2015, 1, 1, 0, 0, 0)
-        date_series = {
-            "Just now": (begin, begin + delta(seconds=59.99999)),
-            "1m ago": (begin, begin + delta(seconds=60)),
-            "59m ago": (begin, begin + delta(seconds=60 * 59.99999)),
-            "1h ago": (begin, begin + delta(seconds=60 * 60)),
-            "23h ago": (begin, begin + delta(seconds=60 * 60 * 23.99999)),
-            "January 1, 2015": (begin, begin + delta(days=2)),
-            "January 2, 2015": (begin + delta(days=1), None),
-            "February 3, 2015": (dt(2015, 2, 3, 18, 6, 46), None)
-            # no @now passed in, defaults month format.
-        }
-
-        for exp, date_tuple in date_series.iteritems():
-            s, e = date_tuple
-            self.assertEqual(exp, util.prettify_time(s, now=e))
-
     def test_str_to_dt(self):
         """
         Convert date string to datetime obj. Handle ms correctly
@@ -51,7 +26,7 @@ class TestUtil(unittest.TestCase):
                 2015, 4, 2, 16, 23, 22, tzinfo=tz)
         }
 
-        for date_string, dt_object in dt_series.iteritems():
+        for date_string, dt_object in dt_series.items():
             self.assertEqual(dt_object, util.str_to_dt(date_string))
 
     def test_shorten_text(self):
@@ -96,7 +71,7 @@ class TestUtil(unittest.TestCase):
         exp1 = {'a': 4, 'b': 2, 'c': 3, 'd': 5}
 
         act = util.merge_dicts(list_of_dicts)
-        for k, v in exp1.iteritems():
+        for k, v in exp1.items():
             self.assertEqual(v, act[k])
 
         default_dict = {'z': 6}
@@ -104,7 +79,7 @@ class TestUtil(unittest.TestCase):
         exp2 = {'a': 4, 'b': 2, 'c': 3, 'd': 5, 'z': 6}
 
         act = util.merge_dicts(list_of_dicts, default_dict)
-        for k, v in exp2.iteritems():
+        for k, v in exp2.items():
             self.assertEqual(v, act[k])
 
 

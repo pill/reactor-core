@@ -6,7 +6,7 @@ from reactorcore import application
 from reactorcore.settings import conf
 
 # you could pass your own routes, services, conf here
-# #services = { k:v for k,v in services.iteritems() }
+# #services = { k:v for k,v in services.items() }
 application.configure(conf)
 
 parser = OptionParser()

@@ -459,10 +459,10 @@ def prepend_dict_key(orig, prep_text, camel_case=False):
     """
     if camel_case:
         return dict(
-            (prep_text + str(k).title(), v) for k, v in orig.iteritems()
+            (prep_text + str(k).title(), v) for k, v in orig.items()
         )
     else:
-        return dict((prep_text + str(k), v) for k, v in orig.iteritems())
+        return dict((prep_text + str(k), v) for k, v in orig.items())
 
 
 def pluck(dct, *keys):
